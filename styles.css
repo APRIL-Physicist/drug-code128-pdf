@@ -16,6 +16,11 @@ h2 { margin: 0 0 12px; font-size: clamp(25px, 3vw, 32px); line-height: 1.35; }
 .or { color: #607184; font-size: 17px; }
 .choose { display: inline-block; border-radius: 12px; padding: 12px 28px; color: white; background: #176cad; font-size: 21px; font-weight: 700; }
 .hint { margin: 16px 0 0; color: #596d7e; font-size: 17px; }
+.page-options { display: grid; grid-template-columns: auto minmax(220px, 1fr); align-items: center; gap: 8px 14px; margin-top: 22px; }
+.page-options label { font-size: 19px; font-weight: 700; }
+.page-options select { min-height: 54px; padding: 10px 14px; border: 2px solid #9cb4c5; border-radius: 12px; background: #fff; color: #183047; font: inherit; font-size: 19px; }
+.page-options select:focus-visible { outline: 4px solid #aacfe7; outline-offset: 2px; }
+.page-options .hint { grid-column: 2; margin: 0; }
 .status { margin-top: 24px; padding: 16px 20px; border-radius: 12px; background: #eef4f7; font-size: 19px; line-height: 1.5; }
 .status.error { color: #9d2929; background: #fff0ee; }
 .status.success { color: #166342; background: #eaf7f0; }
@@ -27,4 +32,5 @@ h2 { margin: 0 0 12px; font-size: clamp(25px, 3vw, 32px); line-height: 1.35; }
 .number { display: inline-grid; width: 29px; height: 29px; place-items: center; border-radius: 50%; color: white; background: #326e94; font-size: 16px; }
 .footnote { margin: 20px 0 0; color: #52697b; font-size: 16px; line-height: 1.5; text-align: center; }
 [hidden] { display: none !important; }
-@media (max-width: 650px) { .shell { width: min(100% - 24px, 900px); padding-top: 24px; } .heading { gap: 12px; } .mark { width: 52px; height: 52px; border-radius: 13px; font-size: 33px; } .eyebrow { font-size: 14px; } .card { padding: 24px 18px; border-radius: 18px; } .lead { font-size: 18px; } .dropzone { min-height: 240px; } .dropzone strong { font-size: 22px; } .details { gap: 7px; } .details > div { flex-direction: column; gap: 5px; padding: 10px 4px; font-size: 14px; } .footnote { font-size: 14px; } }
+@media (max-width: 650px) { .shell { width: min(100% - 24px, 900px); padding-top: 24px; } .heading { gap: 12px; } .mark { width: 52px; height: 52px; border-radius: 13px; font-size: 33px; } .eyebrow { font-size: 14px; } .card { padding: 24px 18px; border-radius: 18px; } .lead { font-size: 18px; } .dropzone { min-height: 240px; } .dropzone strong { font-size: 22px; } .page-options { grid-template-columns: 1fr; gap: 8px; } .page-options .hint { grid-column: 1; } .details { gap: 7px; } .details > div { flex-direction: column; gap: 5px; padding: 10px 4px; font-size: 14px; } .footnote { font-size: 14px; } }
+
