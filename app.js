@@ -5,12 +5,18 @@ const dropzone = document.getElementById("dropzone");
 const statusBox = document.getElementById("status");
 const download = document.getElementById("download");
 const again = document.getElementById("again");
+const pageCountInput = document.getElementById("pageCount");
+const layoutHint = document.getElementById("layoutHint");
 let resultUrl = null;
 let busy = false;
 
 function setStatus(message, kind = "") {
   statusBox.textContent = message;
   statusBox.className = `status ${kind}`.trim();
+}
+
+function updateLayoutHint() {
+  layoutHint.textContent = `A4 纸 · 窄页边距 · 双列 · 每页 ${pageCountInput.value} 个 · 文件只在这台电脑上处理`;
 }
 
 function clearResult() {
@@ -36,43 +42,46 @@ function xmlCodes(content, filename) {
   return codes;
 }
 
-function drawCode(page, code, col, row, font) {
+function drawCode(page, code, col, row, rowsPerColumn, font) {
   const { rgb } = PDFLib;
   const pageWidth = 595.2756;
   const pageHeight = 841.8898;
   const margin = 18;
   const columnGap = 18;
   const columnWidth = (pageWidth - 2 * margin - columnGap) / 2;
-  const rowHeight = (pageHeight - 2 * margin) / 10;
+  const rowHeight = (pageHeight - 2 * margin) / rowsPerColumn;
   const left = margin + col * (columnWidth + columnGap);
   const top = pageHeight - margin - row * rowHeight;
   const barcodeObject = {};
   JsBarcode(barcodeObject, code, { format: "CODE128C", displayValue: false, margin: 0 });
   const bits = barcodeObject.encodings.map(part => part.data).join("");
-  const moduleWidth = Math.min(1, (columnWidth - 16) / (bits.length + 20));
+  const moduleWidth = Math.min(2, (columnWidth - 16) / (bits.length + 20));
   const barWidth = bits.length * moduleWidth;
   const barStart = left + (columnWidth - barWidth) / 2;
+  const labelSize = Math.min(16, 11 + (10 - rowsPerColumn) * 0.9);
+  const barHeight = Math.min(96, rowHeight * 0.55);
+  const contentTop = Math.max(6, (rowHeight - barHeight - labelSize - 18) / 2);
   for (let position = 0; position < bits.length;) {
     if (bits[position] === "0") { position++; continue; }
     let end = position + 1;
     while (end < bits.length && bits[end] === "1") end++;
-    page.drawRectangle({ x: barStart + position * moduleWidth, y: top - 56,
-      width: (end - position) * moduleWidth, height: 43, color: rgb(0, 0, 0) });
+    page.drawRectangle({ x: barStart + position * moduleWidth, y: top - contentTop - barHeight,
+      width: (end - position) * moduleWidth, height: barHeight, color: rgb(0, 0, 0) });
     position = end;
   }
-  const labelSize = 11;
   const labelWidth = font.widthOfTextAtSize(code, labelSize);
-  page.drawText(code, { x: left + (columnWidth - labelWidth) / 2, y: top - 72,
+  page.drawText(code, { x: left + (columnWidth - labelWidth) / 2, y: top - contentTop - barHeight - 14,
     size: labelSize, font, color: rgb(0, 0, 0) });
 }
 
-async function makePdf(codes) {
+async function makePdf(codes, codesPerPage) {
   const pdf = await PDFLib.PDFDocument.create();
   const font = await pdf.embedFont(PDFLib.StandardFonts.Helvetica);
-  for (let start = 0; start < codes.length; start += 20) {
+  const rowsPerColumn = codesPerPage / 2;
+  for (let start = 0; start < codes.length; start += codesPerPage) {
     const page = pdf.addPage([595.2756, 841.8898]);
-    codes.slice(start, start + 20).forEach((code, index) => {
-      drawCode(page, code, Math.floor(index / 10), index % 10, font);
+    codes.slice(start, start + codesPerPage).forEach((code, index) => {
+      drawCode(page, code, Math.floor(index / rowsPerColumn), index % rowsPerColumn, rowsPerColumn, font);
     });
     if (start % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0));
   }
@@ -91,6 +100,8 @@ async function processFiles(fileList) {
   busy = true;
   dropzone.setAttribute("aria-disabled", "true");
   try {
+    const codesPerPage = Number(pageCountInput.value);
+    updateLayoutHint();
     if (!window.JsBarcode || !window.PDFLib || !window.JSZip) {
       throw new Error("页面组件未加载，请刷新网页后重试。 ");
     }
@@ -100,7 +111,7 @@ async function processFiles(fileList) {
       setStatus(`正在处理第 ${i + 1} / ${files.length} 个文件：${file.name}`);
       await new Promise(resolve => setTimeout(resolve, 0));
       const codes = xmlCodes(await file.text(), file.name);
-      const bytes = await makePdf(codes);
+      const bytes = await makePdf(codes, codesPerPage);
       const basename = file.name.replace(/\.xml$/i, "");
       entries.push({ name: `${basename}_转自XML.pdf`, bytes, count: codes.length });
     }
@@ -110,14 +121,14 @@ async function processFiles(fileList) {
       blob = new Blob([entries[0].bytes], { type: "application/pdf" });
       filename = entries[0].name;
       download.textContent = `下载 PDF（${entries[0].count} 个条码）`;
-      setStatus(`已完成：${entries[0].count} 个条码。请点击下面的绿色按钮保存。`, "success");
+      setStatus(`已完成：${entries[0].count} 个条码，每页 ${codesPerPage} 个。请点击下面的绿色按钮保存。`, "success");
     } else {
       const zip = new JSZip();
       entries.forEach(entry => zip.file(entry.name, entry.bytes));
       blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
       filename = "全部条形码PDF.zip";
       download.textContent = `下载全部 PDF（${entries.length} 个文件）`;
-      setStatus(`已完成：${entries.length} 个 PDF，共 ${entries.reduce((n, entry) => n + entry.count, 0)} 个条码。请点击下面的绿色按钮保存。`, "success");
+      setStatus(`已完成：${entries.length} 个 PDF，共 ${entries.reduce((n, entry) => n + entry.count, 0)} 个条码，每页 ${codesPerPage} 个。请点击下面的绿色按钮保存。`, "success");
     }
     resultUrl = URL.createObjectURL(blob);
     download.href = resultUrl;
@@ -134,6 +145,7 @@ async function processFiles(fileList) {
 }
 
 fileInput.addEventListener("change", () => processFiles(fileInput.files));
+pageCountInput.addEventListener("change", updateLayoutHint);
 dropzone.addEventListener("keydown", event => {
   if (event.key === "Enter" || event.key === " ") { event.preventDefault(); fileInput.click(); }
 });
@@ -146,3 +158,4 @@ for (const eventName of ["dragleave", "drop"]) {
 dropzone.addEventListener("drop", event => processFiles(event.dataTransfer.files));
 again.addEventListener("click", () => { clearResult(); fileInput.value = ""; fileInput.click(); });
 window.addEventListener("beforeunload", () => { if (resultUrl) URL.revokeObjectURL(resultUrl); });
+
