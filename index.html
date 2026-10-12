@@ -34,6 +34,16 @@
         <span class="choose">点击选择文件</span>
       </label>
       <input id="fileInput" type="file" accept=".xml,text/xml,application/xml" multiple hidden>
+      <div class="page-options">
+        <label for="pageCount">每页条码数量</label>
+        <select id="pageCount" aria-describedby="pageCountHint">
+          <option value="20" selected>20 个（每列 10 个）</option>
+          <option value="16">16 个（每列 8 个）</option>
+          <option value="12">12 个（每列 6 个）</option>
+          <option value="10">10 个（每列 5 个）</option>
+        </select>
+        <span id="pageCountHint" class="hint">数量越少，单个条码越大。</span>
+      </div>
       <p id="fileHint" class="hint">请选原始 XML 文件。Excel 文件里的长数字可能不完整。</p>
 
       <div id="status" class="status" aria-live="polite" role="status">等待选择文件</div>
@@ -46,7 +56,8 @@
       <div><span class="number">2</span><span>拖进网页</span></div>
       <div><span class="number">3</span><span>点击下载</span></div>
     </div>
-    <p class="footnote">A4 纸 · 窄页边距 · 每页两列，每列 10 个 · 文件只在这台电脑上处理</p>
+    <p id="layoutHint" class="footnote">A4 纸 · 窄页边距 · 双列 · 每页 20 个 · 文件只在这台电脑上处理</p>
   </main>
 </body>
 </html>
+
