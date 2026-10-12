@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#153c66">
+  <meta name="description" content="拖入原始 XML 文件，自动生成适合打印的药品 Code 128 条形码 PDF。">
+  <title>药品条码打印工具</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="vendor/jsbarcode.min.js"></script>
+  <script defer src="vendor/pdf-lib.min.js"></script>
+  <script defer src="vendor/jszip.min.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="heading">
+      <div class="mark" aria-hidden="true">▥</div>
+      <div>
+        <p class="eyebrow">简单三步 · 直接打印</p>
+        <h1>药品条码打印工具</h1>
+      </div>
+    </header>
+
+    <section class="card" aria-labelledby="intro">
+      <h2 id="intro">把解压后的 XML 文件放到这里</h2>
+      <p class="lead">放进来就会自动生成 PDF。一个文件或多个文件都可以。</p>
+
+      <label class="dropzone" id="dropzone" for="fileInput" tabindex="0" role="button" aria-describedby="fileHint">
+        <span class="drop-icon" aria-hidden="true">＋</span>
+        <strong>拖放 XML 文件到这里</strong>
+        <span class="or">或者</span>
+        <span class="choose">点击选择文件</span>
+      </label>
+      <input id="fileInput" type="file" accept=".xml,text/xml,application/xml" multiple hidden>
+      <p id="fileHint" class="hint">请选原始 XML 文件。Excel 文件里的长数字可能不完整。</p>
+
+      <div id="status" class="status" aria-live="polite" role="status">等待选择文件</div>
+      <a id="download" class="download" hidden>下载生成的 PDF</a>
+      <button id="again" class="again" type="button" hidden>重新选择文件</button>
+    </section>
+
+    <div class="details" aria-label="打印说明">
+      <div><span class="number">1</span><span>解压文件</span></div>
+      <div><span class="number">2</span><span>拖进网页</span></div>
+      <div><span class="number">3</span><span>点击下载</span></div>
+    </div>
+    <p class="footnote">A4 纸 · 窄页边距 · 每页两列，每列 10 个 · 文件只在这台电脑上处理</p>
+  </main>
+</body>
+</html>
